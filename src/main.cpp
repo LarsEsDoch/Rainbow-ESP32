@@ -40,6 +40,12 @@ void setup() {
     Serial.begin(115200);
     delay(2000);
 
+    pinMode(STATUS_LED, OUTPUT);
+
+    pinMode(BUTTON_PIN_1, INPUT_PULLUP);
+    pinMode(BUTTON_PIN_2, INPUT_PULLUP);
+    pinMode(BUTTON_PIN_3, INPUT_PULLUP);
+    pinMode(BUTTON_PIN_4, INPUT_PULLUP);
 
     FastLED.addLeds<WS2812B, RGB_PIN, GRB>(leds, NUM_LEDS);
     FastLED.setBrightness(brightness);
@@ -54,7 +60,35 @@ void loop() {
         if (preciseHue >= 255.0f) preciseHue -= 255.0f;
         if (preciseHue < 0.0f) preciseHue += 255.0f;
         leds[0] = CHSV(static_cast<uint8_t>(preciseHue), 255, 255);
+    if (digitalRead(BUTTON_PIN_1) == LOW) {
+        rainbowActive = false;
+        leds[0] = CRGB::Red;
         FastLED.show();
+        Serial.println("Manual mode: LED is RED");
+        delay(200);
+    }
+
+    if (digitalRead(BUTTON_PIN_2) == LOW) {
+        rainbowActive = false;
+        leds[0] = CRGB::Blue;
+        FastLED.show();
+        Serial.println("Manual mode: LED is BLUE");
+        delay(200);
+    }
+
+    if (digitalRead(BUTTON_PIN_3) == LOW) {
+        rainbowActive = false;
+        leds[0] = CRGB::Green;
+        FastLED.show();
+        Serial.println("Manual mode: LED is GREEN");
+        delay(200);
+    }
+
+    if (digitalRead(BUTTON_PIN_4) == LOW) {
+        rainbowActive = !rainbowActive;
+        Serial.printf("Rainbow effect is now %s\n", rainbowActive ? "on" : "off");
+        delay(200);
+    }
     }
 
     if (Serial.available() > 0) {
@@ -119,6 +153,14 @@ void loop() {
                 printMenu();
                 break;
         }
+    }
+
+    if (rainbowActive) {
+        preciseHue += speed;
+        if (preciseHue >= 255.0f) preciseHue -= 255.0f;
+        if (preciseHue < 0.0f) preciseHue += 255.0f;
+        leds[0] = CHSV(static_cast<uint8_t>(preciseHue), 255, 255);
+        FastLED.show();
     }
 
     unsigned long currentMillis = millis();
