@@ -18,17 +18,17 @@ bool rainbowActive = true;
 float preciseHue = 0.0f;
 
 void printMenu() {
-    Serial.println("\n--- ESP32-S3 DEBUG KONSOLE ---");
-    Serial.println("Befehle:");
-    Serial.println("  'p' -> Regenbogen Start/Stop");
-    Serial.println("  '+' -> Helligkeit erhöhen");
-    Serial.println("  '-' -> Helligkeit senken");
-    Serial.println("  'f' -> Geschwindigkeit erhöhen");
-    Serial.println("  's' -> Geschwindigkeit senken");
-    Serial.println("  'r' -> LED manuell auf ROT");
-    Serial.println("  'g' -> LED manuell auf GRÜN");
-    Serial.println("  'b' -> LED manuell auf BLAU");
-    Serial.println("  'n' -> Einstellung reset");
+    Serial.println("\n--- ESP32-S3 DEBUG CONSOLE ---");
+    Serial.println("Commands:");
+    Serial.println("  'p' -> Rainbow Start/Stop");
+    Serial.println("  '+' -> Increase brightness");
+    Serial.println("  '-' -> Decrease brightness");
+    Serial.println("  'f' -> Increase speed");
+    Serial.println("  's' -> Decrease speed");
+    Serial.println("  'r' -> Manual LED: RED");
+    Serial.println("  'g' -> Manual LED: GREEN");
+    Serial.println("  'b' -> Manual LED: BLUE");
+    Serial.println("  'n' -> Reset settings");
     Serial.println("------------------------------");
 }
 
@@ -40,7 +40,7 @@ void setup() {
     FastLED.addLeds<WS2812B, RGB_PIN, GRB>(leds, NUM_LEDS);
     FastLED.setBrightness(brightness);
 
-    Serial.println("System bereit!");
+    Serial.println("System ready!");
     printMenu();
 }
 
@@ -56,62 +56,62 @@ void loop() {
     if (Serial.available() > 0) {
         char incomingByte = Serial.read();
 
-        Serial.print("Eingabe empfangen: ");
+        Serial.print("Input detected: ");
         Serial.println(incomingByte);
 
         switch (incomingByte) {
             case 'p':
                 rainbowActive = !rainbowActive;
-                Serial.printf("Regenbogen ist jetzt: %s\n", rainbowActive ? "AN" : "AUS");
+                Serial.printf("Rainbow effect is now %s\n", rainbowActive ? "on" : "off");
                 break;
             case '+':
                 if (brightness < 245) brightness += 10;
                 FastLED.setBrightness(brightness);
-                Serial.printf("Helligkeit erhöht auf: %d\n", brightness);
+                Serial.printf("Brightness increased to %d\n", brightness);
                 break;
             case '-':
                 if (brightness > 10) brightness -= 10;
                 FastLED.setBrightness(brightness);
-                Serial.printf("Helligkeit gesenkt auf: %d\n", brightness);
+                Serial.printf("Brightness decreased to %d\n", brightness);
                 break;
             case 'r':
                 rainbowActive = false;
                 leds[0] = CRGB::Red;
                 FastLED.show();
-                Serial.println("Manueller Modus: LED ist ROT");
+                Serial.println("Manual mode: LED is RED");
                 break;
             case 'b':
                 rainbowActive = false;
                 leds[0] = CRGB::Blue;
                 FastLED.show();
-                Serial.println("Manueller Modus: LED ist BLAU");
+                Serial.println("Manual mode: LED is BLUE");
                 break;
             case 'g':
                 rainbowActive = false;
                 leds[0] = CRGB::Green;
                 FastLED.show();
-                Serial.println("Manueller Modus: LED ist GRÜN");
+                Serial.println("Manual mode: LED is GREEN");
                 break;
             case 'f':
                 speed += 0.01f;
-                Serial.printf("Speed erhöht auf: %f\n", speed);
+                Serial.printf("Speed increased to %f\n", speed);
                 break;
             case 's':
                 speed -= 0.01f;
-                Serial.printf("Speed verringert auf: %f\n", speed);
+                Serial.printf("Speed decreased to %f\n", speed);
                 break;
             case 'n':
                 rainbowActive = true;
                 preciseHue = 0.0f;
                 brightness = 50;
                 speed = 1.0f;
-                Serial.println("Einstellung wurden zurück gesetzt");
+                Serial.println("Settings have been reset");
                 break;
             case '\n':
             case '\r':
                 break;
             default:
-                Serial.println("Unbekannter Befehl!");
+                Serial.println("Unknown command!");
                 printMenu();
                 break;
         }
