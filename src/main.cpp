@@ -18,6 +18,8 @@ CRGB leds[NUM_LEDS];
 uint8_t brightness = 127;
 float speed = 1.0f;
 bool rainbowActive = true;
+bool discoActive = false;
+bool ledOn = true;
 float preciseHue = 0.0f;
 
 unsigned long lastBlinkMillis = 0;
@@ -59,6 +61,7 @@ void setup() {
 void loop() {
     if (digitalRead(BUTTON_PIN_1) == LOW) {
         rainbowActive = false;
+        discoActive = false;
         if (staticColor == 0) {
             leds[0] = CRGB::Red;
             Serial.println("Manual mode: LED is RED");
@@ -84,11 +87,20 @@ void loop() {
         rainbowActive = false;
         discoActive = true;
 
+        uint8_t randomHue = random(0, 256);
+
+        brightness = random(5, 256);
+
+        leds[0] = CHSV(randomHue, 255, 255);
+        FastLED.setBrightness(brightness);
+
+        Serial.printf("Random color: %d and brightness: %d\n", randomHue, brightness);
         delay(200);
     }
 
     if (digitalRead(BUTTON_PIN_4) == LOW) {
         rainbowActive = !rainbowActive;
+        discoActive = false;
         Serial.printf("Rainbow effect is now %s\n", rainbowActive ? "on" : "off");
         delay(200);
     }
@@ -102,14 +114,14 @@ void loop() {
     smoothedPot1 = (smoothedPot1 * 0.9f) + (raw1 * 0.1f);
     smoothedPot2 = (smoothedPot2 * 0.9f) + (raw2 * 0.1f);
 
-    float newSpeed = 0.01f + ((int)smoothedPot1 / 4095.0f) * 9.99f;
+    float newSpeed = 0.01f + ((int)smoothedPot1 / 4095.0f) * 10.00f;
     uint8_t newBrightness = map((int)smoothedPot2, 0, 4095, 0, 255);
 
     if (abs(newSpeed - speed) > 0.01f) {
         speed = newSpeed;
     }
 
-    if (newBrightness != brightness) {
+    if (newBrightness != brightness && !discoActive) {
         brightness = newBrightness;
         FastLED.setBrightness(brightness);
     }
