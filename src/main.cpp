@@ -15,7 +15,7 @@
 #define POT_PIN_2 5
 
 CRGB leds[NUM_LEDS];
-uint8_t brightness = 50;
+uint8_t brightness = 127;
 float speed = 1.0f;
 bool rainbowActive = true;
 float preciseHue = 0.0f;
@@ -60,7 +60,6 @@ void loop() {
     if (digitalRead(BUTTON_PIN_1) == LOW) {
         rainbowActive = false;
         leds[0] = CRGB::Red;
-        FastLED.show();
         Serial.println("Manual mode: LED is RED");
         delay(200);
     }
@@ -68,7 +67,6 @@ void loop() {
     if (digitalRead(BUTTON_PIN_2) == LOW) {
         rainbowActive = false;
         leds[0] = CRGB::Blue;
-        FastLED.show();
         Serial.println("Manual mode: LED is BLUE");
         delay(200);
     }
@@ -76,7 +74,6 @@ void loop() {
     if (digitalRead(BUTTON_PIN_3) == LOW) {
         rainbowActive = false;
         leds[0] = CRGB::Green;
-        FastLED.show();
         Serial.println("Manual mode: LED is GREEN");
         delay(200);
     }
@@ -173,7 +170,6 @@ void loop() {
         if (preciseHue >= 255.0f) preciseHue -= 255.0f;
         if (preciseHue < 0.0f) preciseHue += 255.0f;
         leds[0] = CHSV(static_cast<uint8_t>(preciseHue), 255, 255);
-        FastLED.show();
     }
 
     unsigned long currentMillis = millis();
@@ -181,7 +177,7 @@ void loop() {
         if (currentMillis - lastBlinkMillis >= 200) {
             lastBlinkMillis = currentMillis;
             statusLedState = false;
-            digitalWrite(STATUS_LED, statusLedState);
+            analogWrite(STATUS_LED, statusLedState);
         }
     } else {
         if (currentMillis - lastBlinkMillis >= 5000) {
@@ -191,5 +187,6 @@ void loop() {
         }
     }
 
+    FastLED.show();
     delay(5);
 }
