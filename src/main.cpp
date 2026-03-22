@@ -3,14 +3,16 @@
 
 #define RGB_PIN 48
 #define NUM_LEDS 1
-#define POT_PIN_1 4
-#define POT_PIN_2 5
-#define STATUS_LED 2
+
 #define STATUS_LED 6
+
 #define BUTTON_PIN_1 11
 #define BUTTON_PIN_2 12
 #define BUTTON_PIN_3 13
 #define BUTTON_PIN_4 14
+
+#define POT_PIN_1 4
+#define POT_PIN_2 5
 
 CRGB leds[NUM_LEDS];
 uint8_t brightness = 50;
@@ -55,11 +57,6 @@ void setup() {
 }
 
 void loop() {
-    if (rainbowActive) {
-        preciseHue += speed;
-        if (preciseHue >= 255.0f) preciseHue -= 255.0f;
-        if (preciseHue < 0.0f) preciseHue += 255.0f;
-        leds[0] = CHSV(static_cast<uint8_t>(preciseHue), 255, 255);
     if (digitalRead(BUTTON_PIN_1) == LOW) {
         rainbowActive = false;
         leds[0] = CRGB::Red;
@@ -89,6 +86,22 @@ void loop() {
         Serial.printf("Rainbow effect is now %s\n", rainbowActive ? "on" : "off");
         delay(200);
     }
+
+    int potVal1 = analogRead(POT_PIN_1);
+    int potVal2 = analogRead(POT_PIN_2);
+
+    static int lastPotVal1 = 0;
+    static int lastPotVal2 = 0;
+    if (abs(potVal1 - lastPotVal1) > 50) {
+        float potSpeed = 0.01 + (potVal1 / 4095.0) * 5.0;
+        speed = potSpeed;
+        lastPotVal1 = potVal1;
+    }
+    if (abs(potVal2 - lastPotVal2) > 50) {
+        uint8_t potBrightness = (potVal2 / 4095.0) * 255;
+        brightness = potBrightness;
+        FastLED.setBrightness(brightness);
+        lastPotVal2 = potVal2;
     }
 
     if (Serial.available() > 0) {
