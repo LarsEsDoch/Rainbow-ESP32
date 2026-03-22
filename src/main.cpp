@@ -6,6 +6,7 @@
 #define POT_PIN_1 4
 #define POT_PIN_2 5
 #define STATUS_LED 2
+#define STATUS_LED 6
 #define BUTTON_PIN_1 11
 #define BUTTON_PIN_2 12
 #define BUTTON_PIN_3 13
@@ -16,6 +17,9 @@ uint8_t brightness = 50;
 float speed = 1.0f;
 bool rainbowActive = true;
 float preciseHue = 0.0f;
+
+unsigned long lastBlinkMillis = 0;
+bool statusLedState = false;
 
 void printMenu() {
     Serial.println("\n--- ESP32-S3 DEBUG CONSOLE ---");
@@ -114,6 +118,21 @@ void loop() {
                 Serial.println("Unknown command!");
                 printMenu();
                 break;
+        }
+    }
+
+    unsigned long currentMillis = millis();
+    if (statusLedState) {
+        if (currentMillis - lastBlinkMillis >= 200) {
+            lastBlinkMillis = currentMillis;
+            statusLedState = false;
+            digitalWrite(STATUS_LED, statusLedState);
+        }
+    } else {
+        if (currentMillis - lastBlinkMillis >= 5000) {
+            lastBlinkMillis = currentMillis;
+            statusLedState = true;
+            digitalWrite(STATUS_LED, statusLedState);
         }
     }
 
