@@ -84,21 +84,25 @@ void loop() {
         delay(200);
     }
 
-    int potVal1 = analogRead(POT_PIN_1);
-    int potVal2 = analogRead(POT_PIN_2);
+    static float smoothedPot1 = 0;
+    static float smoothedPot2 = 0;
 
-    static int lastPotVal1 = 0;
-    static int lastPotVal2 = 0;
-    if (abs(potVal1 - lastPotVal1) > 50) {
-        float potSpeed = 0.01 + (potVal1 / 4095.0) * 5.0;
-        speed = potSpeed;
-        lastPotVal1 = potVal1;
+    int raw1 = analogRead(POT_PIN_1);
+    int raw2 = analogRead(POT_PIN_2);
+
+    smoothedPot1 = (smoothedPot1 * 0.9f) + (raw1 * 0.1f);
+    smoothedPot2 = (smoothedPot2 * 0.9f) + (raw2 * 0.1f);
+
+    float newSpeed = 0.01f + ((int)smoothedPot1 / 4095.0f) * 9.99f;
+    uint8_t newBrightness = map((int)smoothedPot2, 0, 4095, 0, 255);
+
+    if (abs(newSpeed - speed) > 0.01f) {
+        speed = newSpeed;
     }
-    if (abs(potVal2 - lastPotVal2) > 50) {
-        uint8_t potBrightness = (potVal2 / 4095.0) * 255;
-        brightness = potBrightness;
+
+    if (newBrightness != brightness) {
+        brightness = newBrightness;
         FastLED.setBrightness(brightness);
-        lastPotVal2 = potVal2;
     }
 
     if (Serial.available() > 0) {
@@ -183,7 +187,7 @@ void loop() {
         if (currentMillis - lastBlinkMillis >= 5000) {
             lastBlinkMillis = currentMillis;
             statusLedState = true;
-            digitalWrite(STATUS_LED, statusLedState);
+            analogWrite(STATUS_LED, constrain(brightness, 10, 255));
         }
     }
 
