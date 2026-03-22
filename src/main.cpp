@@ -59,22 +59,31 @@ void setup() {
 void loop() {
     if (digitalRead(BUTTON_PIN_1) == LOW) {
         rainbowActive = false;
-        leds[0] = CRGB::Red;
-        Serial.println("Manual mode: LED is RED");
+        if (staticColor == 0) {
+            leds[0] = CRGB::Red;
+            Serial.println("Manual mode: LED is RED");
+            staticColor = 1;
+        } else if (staticColor == 1) {
+            leds[0] = CRGB::Green;
+            Serial.println("Manual mode: LED is GREEN");
+            staticColor = 2;
+        } else if (staticColor == 2) {
+            leds[0] = CRGB::Blue;
+            Serial.println("Manual mode: LED is BLUE");
+            staticColor = 3;
+        } else if (staticColor == 3) {
+            leds[0] = CRGB::White;
+            Serial.println("Manual mode: LED is WHITE");
+            staticColor = 0;
+        }
+
         delay(200);
     }
 
     if (digitalRead(BUTTON_PIN_2) == LOW) {
         rainbowActive = false;
-        leds[0] = CRGB::Blue;
-        Serial.println("Manual mode: LED is BLUE");
-        delay(200);
-    }
+        discoActive = true;
 
-    if (digitalRead(BUTTON_PIN_3) == LOW) {
-        rainbowActive = false;
-        leds[0] = CRGB::Green;
-        Serial.println("Manual mode: LED is GREEN");
         delay(200);
     }
 
