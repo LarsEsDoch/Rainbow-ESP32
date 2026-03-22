@@ -59,6 +59,38 @@ void setup() {
 }
 
 void loop() {
+    if (digitalRead(BUTTON_PIN_3) == LOW) {
+        if (ledOn) {
+            ledOn = false;
+            Serial.println("System is now off.");
+
+            for (int i = brightness; i >= 0; i--) {
+                FastLED.setBrightness(i);
+                FastLED.show();
+                delay(5);
+            }
+
+            analogWrite(STATUS_LED, 255);
+            delay(2000);
+            analogWrite(STATUS_LED, 0);
+        } else {
+            ledOn = true;
+            Serial.println("System is now on!");
+
+            for (int i = 0; i <= brightness; i++) {
+                FastLED.setBrightness(i);
+                FastLED.show();
+                delay(5);
+            }
+        }
+    }
+
+    if (!ledOn) {
+        delay(5);
+        return;
+    }
+
+    static int staticColor = 0;
     if (digitalRead(BUTTON_PIN_1) == LOW) {
         rainbowActive = false;
         discoActive = false;
