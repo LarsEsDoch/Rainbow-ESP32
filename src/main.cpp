@@ -26,6 +26,8 @@ bool discoActive = false;
 bool ledOn = true;
 bool nightMode = false;
 
+bool debugMode = false;
+
 float preciseHue = 0.0f;
 CRGB targetColor = CRGB::Black;
 
@@ -181,6 +183,26 @@ void loop() {
 
     if (abs(newSpeed - speed) > 0.01f) {
         speed = newSpeed;
+void loop() {
+    if (debugMode) {
+        Serial.printf(
+            "MS:%8lu | ON:%c | MODE:%c%c%c | SPD:%5.2f | MBR:%3d | BR:%3d | P1:%4d(%c) | P2:%4d(%c) | LDR:%4d | RGB:%3d,%3d,%3d | ACT:%c\n",
+            millis(),
+            ledOn ? 'Y' : 'N',
+            rainbowActive ? 'R' : '.',
+            discoActive   ? 'D' : '.',
+            nightMode     ? 'N' : '.',
+            speed,
+            manualBrightness,
+            brightness,
+            lastPot1Value,
+            pot1Locked    ? 'L' : '.',
+            lastPot2Value,
+            pot2Locked    ? 'L' : '.',
+            analogRead(LDR_PIN),
+            leds[0].r, leds[0].g, leds[0].b,
+            actionDetected ? '!' : '.'
+        );
     }
 
     if (newBrightness != brightness && !discoActive) {
@@ -254,6 +276,11 @@ void loop() {
                 speed = 1.0f;
                 Serial.println("Settings have been reset");
                 break;
+            case 'i': {
+                debugMode = !debugMode;
+                Serial.printf("Debug mode is now %s\n", debugMode ? "on" : "off");
+                break;
+            }
             case '\n':
             case '\r':
                 break;
