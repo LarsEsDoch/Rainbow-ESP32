@@ -19,6 +19,7 @@
 
 CRGB leds[NUM_LEDS];
 int brightness = 127;
+int manualBrightness = 127;
 float speed = 1.0f;
 
 bool rainbowActive = true;
@@ -30,6 +31,11 @@ bool debugMode = false;
 
 float preciseHue = 0.0f;
 CRGB targetColor = CRGB::Black;
+
+int lastPot1Value = -1;
+int lastPot2Value = -1;
+bool pot1Locked = false;
+bool pot2Locked = false;
 
 unsigned long lastBlinkMillis = 0;
 bool statusLedState = false;
@@ -169,20 +175,6 @@ void loop() {
         delay(200);
     }
 
-    static float smoothedPot1 = 0;
-    static float smoothedPot2 = 0;
-
-    int raw1 = analogRead(POT_PIN_1);
-    int raw2 = analogRead(POT_PIN_2);
-
-    smoothedPot1 = (smoothedPot1 * 0.9f) + (raw1 * 0.1f);
-    smoothedPot2 = (smoothedPot2 * 0.9f) + (raw2 * 0.1f);
-
-    float newSpeed = 0.01f + ((int)smoothedPot1 / 4095.0f) * 10.00f;
-    uint8_t newBrightness = map((int)smoothedPot2, 0, 4095, 0, 255);
-
-    if (abs(newSpeed - speed) > 0.01f) {
-        speed = newSpeed;
 void loop() {
     if (debugMode) {
         Serial.printf(
@@ -307,7 +299,69 @@ void loop() {
             Serial.printf("Night mode is now %s\n", nightMode ? "on" : "off");
         }
     }
-    if (nightMode) {
+
+    static float smoothedPot1 = 0;
+    static float smoothedPot2 = 0;
+
+    static float lastTriggeredPot1 = 0;
+    static float lastTriggeredPot2 = 0;
+
+    const float ADC_MIN = 100.0f;
+    const float ADC_MAX = 4000.0f;
+
+    const float ADC_TOLERANCE = 25.0f;
+
+    int raw1 = analogRead(POT_PIN_1);
+    int raw2 = analogRead(POT_PIN_2);
+
+    smoothedPot1 = (smoothedPot1 * 0.9f) + (raw1 * 0.1f);
+    smoothedPot2 = (smoothedPot2 * 0.9f) + (raw2 * 0.1f);
+
+    if (pot1Locked) {
+        if (abs(raw1 - lastPot1Value) > 100) {
+            pot1Locked = false;
+            Serial.println("Poti 1 (Speed) UNLOCKED");
+            lastPot1Value = raw1;
+            lastTriggeredPot1 = smoothedPot1;
+        }
+    } else {
+        if (abs(smoothedPot1 - lastTriggeredPot1) > ADC_TOLERANCE) {
+            lastTriggeredPot1 = smoothedPot1;
+
+            float constrainedPot1 = constrain(smoothedPot1, ADC_MIN, ADC_MAX);
+
+            float newSpeed = 0.01f + ((constrainedPot1 - ADC_MIN) / (ADC_MAX - ADC_MIN)) * (10.00f - 0.01f);
+
+            speed = newSpeed;
+            triggerStatusBlink();
+        }
+        lastPot1Value = raw1;
+    }
+
+    if (pot2Locked) {
+        if (abs(raw2 - lastPot2Value) > 100) {
+            pot2Locked = false;
+            Serial.println("Poti 2 (Brightness) UNLOCKED");
+            lastPot2Value = raw2;
+            lastTriggeredPot2 = smoothedPot2;
+        }
+    } else if (!discoActive && !nightMode) {
+        if (abs(smoothedPot2 - lastTriggeredPot2) > ADC_TOLERANCE) {
+            lastTriggeredPot2 = smoothedPot2;
+
+            float constrainedPot2 = constrain(smoothedPot2, ADC_MIN, ADC_MAX);
+
+            uint8_t newBrightness = (uint8_t)(((constrainedPot2 - ADC_MIN) / (ADC_MAX - ADC_MIN)) * 255.0f);
+
+            brightness = newBrightness;
+            manualBrightness = newBrightness;
+            FastLED.setBrightness(brightness);
+            triggerStatusBlink();
+        }
+        lastPot2Value = raw2;
+    }
+
+    if (nightMode && !discoActive) {
         static float smoothedLDR = -1;
         int lightRaw = analogRead(LDR_PIN);
         if (smoothedLDR < 0) smoothedLDR = lightRaw;
