@@ -199,11 +199,18 @@ void loop() {
                 if (!nightMode) {
                     syncBrightness();
                 }
+                Serial.printf("Night mode is now %s\n", nightMode ? "on" : "off");
+                break;
+            case 'o':
                 triggerStatusBlink();
                 togglePower();
                 Serial.printf("System is now %s\n", ledOn ? "on" : "off");
                 break;
             case '+':
+                if (nightMode) {
+                    Serial.printf("Night mode is activated! Nothing changed.");
+                    break;
+                }
                 triggerStatusBlink();
                 pot2Locked = true;
                 brightness += 10;
@@ -213,6 +220,10 @@ void loop() {
                 Serial.printf("Brightness increased to %d\n", brightness);
                 break;
             case '-':
+                if (nightMode) {
+                    Serial.printf("Night mode is activated! Nothing changed.");
+                    break;
+                }
                 triggerStatusBlink();
                 pot2Locked = true;
                 brightness -= 10;
