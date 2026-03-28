@@ -130,29 +130,6 @@ void loop() {
                 delay(5);
             }
         }
-    }
-
-    if (!ledOn) {
-        delay(5);
-        return;
-    }
-
-    static int staticColor = 0;
-    if (digitalRead(BUTTON_PIN_1) == LOW) {
-        rainbowActive = false;
-        discoActive = false;
-        if (staticColor == 0) {
-            Serial.println("Manual mode: LED is RED");
-            staticColor = 1;
-        } else if (staticColor == 1) {
-            Serial.println("Manual mode: LED is GREEN");
-            staticColor = 2;
-        } else if (staticColor == 2) {
-            Serial.println("Manual mode: LED is BLUE");
-            staticColor = 3;
-        } else if (staticColor == 3) {
-            Serial.println("Manual mode: LED is WHITE");
-            staticColor = 0;
         }
 
         delay(200);
@@ -248,6 +225,10 @@ void loop() {
             case 'r':
                 triggerStatusBlink();
                 rainbowActive = false;
+                if (discoActive) {
+                    discoActive = false;
+                    syncBrightness();
+                }
                 targetColor = CRGB::Red;
                 FastLED.show();
                 Serial.println("Manual mode: LED is RED");
@@ -317,13 +298,37 @@ void loop() {
         delay(5);
         return;
     }
+
+    static int staticColor = 0;
+    if (digitalRead(BUTTON_PIN_1) == LOW) {
+        if (millis() - lastButton1Millis > debounceDelay) {
+            lastButton1Millis = millis();
             triggerStatusBlink();
             rainbowActive = false;
+            if (discoActive) {
+                discoActive = false;
                 syncBrightness();
+            }
+            if (staticColor == 0) {
                 targetColor = CRGB::Red;
+                Serial.println("Manual mode: LED is RED");
+                staticColor = 1;
+            } else if (staticColor == 1) {
                 targetColor = CRGB::Green;
+                Serial.println("Manual mode: LED is GREEN");
+                staticColor = 2;
+            } else if (staticColor == 2) {
                 targetColor = CRGB::Blue;
+                Serial.println("Manual mode: LED is BLUE");
+                staticColor = 3;
+            } else if (staticColor == 3) {
                 targetColor = CRGB::White;
+                Serial.println("Manual mode: LED is WHITE");
+                staticColor = 0;
+            }
+        }
+    }
+
             triggerStatusBlink();
             triggerStatusBlink();
             rainbowActive = !rainbowActive;
@@ -332,6 +337,10 @@ void loop() {
                 syncBrightness();
             }
             targetColor = CRGB::Black;
+            Serial.printf("Rainbow effect is now %s\n", rainbowActive ? "on" : "off");
+        }
+    }
+
     if (digitalRead(BUTTON_PIN_5) == LOW) {
         if (millis() - lastButton5Millis > debounceDelay) {
             lastButton5Millis = millis();
