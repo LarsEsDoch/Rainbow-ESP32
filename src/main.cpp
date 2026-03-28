@@ -255,7 +255,17 @@ void loop() {
                 FastLED.show();
                 Serial.println("Manual mode: LED is GREEN");
                 break;
+            case 'w':
                 triggerStatusBlink();
+                rainbowActive = false;
+                if (discoActive) {
+                    discoActive = false;
+                    syncBrightness();
+                }
+                targetColor = CRGB::White;
+                FastLED.show();
+                Serial.println("Manual mode: LED is WHITE");
+                break;
             case 'f':
                 triggerStatusBlink();
                 pot1Locked = true;
