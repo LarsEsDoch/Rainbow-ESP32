@@ -105,31 +105,25 @@ void setup() {
     printMenu();
 }
 
-void loop() {
-    if (digitalRead(BUTTON_PIN_3) == LOW) {
-        if (ledOn) {
-            ledOn = false;
-            Serial.println("System is now off.");
-
-            for (int i = brightness; i >= 0; i--) {
-                FastLED.setBrightness(i);
-                FastLED.show();
-                delay(5);
-            }
-
-            analogWrite(STATUS_LED, 255);
-            delay(2000);
-            analogWrite(STATUS_LED, 0);
-        } else {
-            ledOn = true;
-            Serial.println("System is now on!");
-
-            for (int i = 0; i <= brightness; i++) {
-                FastLED.setBrightness(i);
-                FastLED.show();
-                delay(5);
-            }
+void togglePower() {
+    if (ledOn) {
+        ledOn = false;
+        Serial.println("Action: Power OFF");
+        for (int i = brightness; i >= 0; i--) {
+            FastLED.setBrightness(i);
+            FastLED.show();
+            delay(5);
         }
+        analogWrite(STATUS_LED, 255);
+        delay(1000);
+        analogWrite(STATUS_LED, 0);
+    } else {
+        ledOn = true;
+        Serial.println("Action: Power ON");
+        for (int i = 0; i <= brightness; i++) {
+            FastLED.setBrightness(i);
+            FastLED.show();
+            delay(5);
         }
 
         delay(200);
@@ -183,6 +177,8 @@ void loop() {
         brightness = newBrightness;
         FastLED.setBrightness(brightness);
             triggerStatusBlink();
+            togglePower();
+        }
     }
 
     if (Serial.available() > 0) {
@@ -204,6 +200,9 @@ void loop() {
                     syncBrightness();
                 }
                 triggerStatusBlink();
+                togglePower();
+                Serial.printf("System is now %s\n", ledOn ? "on" : "off");
+                break;
             case '+':
                 triggerStatusBlink();
                 pot2Locked = true;
