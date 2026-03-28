@@ -95,19 +95,15 @@ void loop() {
         rainbowActive = false;
         discoActive = false;
         if (staticColor == 0) {
-            leds[0] = CRGB::Red;
             Serial.println("Manual mode: LED is RED");
             staticColor = 1;
         } else if (staticColor == 1) {
-            leds[0] = CRGB::Green;
             Serial.println("Manual mode: LED is GREEN");
             staticColor = 2;
         } else if (staticColor == 2) {
-            leds[0] = CRGB::Blue;
             Serial.println("Manual mode: LED is BLUE");
             staticColor = 3;
         } else if (staticColor == 3) {
-            leds[0] = CRGB::White;
             Serial.println("Manual mode: LED is WHITE");
             staticColor = 0;
         }
@@ -124,7 +120,6 @@ void loop() {
         brightness = random(5, 256);
 
         leds[0] = CHSV(randomHue, 255, 255);
-        FastLED.setBrightness(brightness);
 
         Serial.printf("Random color: %d and brightness: %d\n", randomHue, brightness);
         delay(200);
@@ -188,12 +183,14 @@ void loop() {
             case 'b':
                 rainbowActive = false;
                 leds[0] = CRGB::Blue;
+                targetColor = CRGB::Blue;
                 FastLED.show();
                 Serial.println("Manual mode: LED is BLUE");
                 break;
             case 'g':
                 rainbowActive = false;
                 leds[0] = CRGB::Green;
+                targetColor = CRGB::Green;
                 FastLED.show();
                 Serial.println("Manual mode: LED is GREEN");
                 break;
@@ -222,11 +219,18 @@ void loop() {
         }
     }
 
+                targetColor = CRGB::Red;
+                targetColor = CRGB::Green;
+                targetColor = CRGB::Blue;
+                targetColor = CRGB::White;
+            targetColor = CRGB::Black;
     if (rainbowActive) {
         preciseHue += speed;
         if (preciseHue >= 255.0f) preciseHue -= 255.0f;
         if (preciseHue < 0.0f) preciseHue += 255.0f;
         leds[0] = CHSV(static_cast<uint8_t>(preciseHue), 255, 255);
+    } else if (!discoActive && ledOn && (targetColor == CRGB::Red || targetColor == CRGB::Green || targetColor == CRGB::Blue || targetColor == CRGB::White)) {
+        nblend(leds[0], targetColor, 16);
     }
 
     unsigned long currentMillis = millis();
