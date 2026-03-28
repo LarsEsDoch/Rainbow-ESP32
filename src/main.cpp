@@ -55,6 +55,11 @@ unsigned long lastButton4Millis = 0;
 unsigned long lastButton5Millis = 0;
 const unsigned long debounceDelay = 200;
 
+void syncBrightness() {
+    brightness = manualBrightness;
+    FastLED.setBrightness(brightness);
+}
+
 void printMenu() {
     Serial.println("\n--- ESP32-S3 DEBUG CONSOLE ---");
     Serial.println("=== SYSTEM ===");
@@ -215,29 +220,45 @@ void loop() {
                 rainbowActive = !rainbowActive;
                 Serial.printf("Rainbow effect is now %s\n", rainbowActive ? "on" : "off");
                 break;
+            case 'n':
                 triggerStatusBlink();
+                nightMode = !nightMode;
+                if (!nightMode) {
+                    syncBrightness();
+                }
                 triggerStatusBlink();
             case '+':
-                if (brightness < 245) brightness += 10;
                 triggerStatusBlink();
+                pot2Locked = true;
+                brightness += 10;
+                if (brightness > 255) brightness = 255;
+                manualBrightness = brightness;
                 FastLED.setBrightness(brightness);
                 Serial.printf("Brightness increased to %d\n", brightness);
                 break;
             case '-':
-                if (brightness > 10) brightness -= 10;
                 triggerStatusBlink();
+                pot2Locked = true;
+                brightness -= 10;
+                if (brightness < 0) brightness = 0;
+                manualBrightness = brightness;
                 FastLED.setBrightness(brightness);
                 Serial.printf("Brightness decreased to %d\n", brightness);
                 break;
             case 'r':
                 triggerStatusBlink();
                 rainbowActive = false;
+                targetColor = CRGB::Red;
                 FastLED.show();
                 Serial.println("Manual mode: LED is RED");
                 break;
             case 'b':
                 triggerStatusBlink();
                 rainbowActive = false;
+                if (discoActive) {
+                    discoActive = false;
+                    syncBrightness();
+                }
                 targetColor = CRGB::Blue;
                 FastLED.show();
                 Serial.println("Manual mode: LED is BLUE");
@@ -245,26 +266,32 @@ void loop() {
             case 'g':
                 triggerStatusBlink();
                 rainbowActive = false;
+                if (discoActive) {
+                    discoActive = false;
+                    syncBrightness();
+                }
                 targetColor = CRGB::Green;
                 FastLED.show();
                 Serial.println("Manual mode: LED is GREEN");
                 break;
                 triggerStatusBlink();
             case 'f':
-                speed += 0.01f;
                 triggerStatusBlink();
+                pot1Locked = true;
+                speed += 0.05f;
                 Serial.printf("Speed increased to %f\n", speed);
                 break;
             case 's':
-                speed -= 0.01f;
                 triggerStatusBlink();
+                pot1Locked = true;
+                speed -= 0.05f;
+                if (speed < 0.01f) speed = 0.01f;
                 Serial.printf("Speed decreased to %f\n", speed);
                 break;
             case 'n':
                 rainbowActive = true;
                 preciseHue = 0.0f;
-                brightness = 50;
-                brightness = 127;
+                syncBrightness();
                 speed = 1.0f;
                 Serial.println("Settings have been reset");
                 break;
@@ -283,19 +310,33 @@ void loop() {
         }
     }
 
+    if (!ledOn) {
+        delay(5);
+        return;
+    }
             triggerStatusBlink();
+            rainbowActive = false;
+                syncBrightness();
                 targetColor = CRGB::Red;
                 targetColor = CRGB::Green;
                 targetColor = CRGB::Blue;
                 targetColor = CRGB::White;
             triggerStatusBlink();
             triggerStatusBlink();
+            rainbowActive = !rainbowActive;
+            if (discoActive) {
+                discoActive = false;
+                syncBrightness();
+            }
             targetColor = CRGB::Black;
     if (digitalRead(BUTTON_PIN_5) == LOW) {
         if (millis() - lastButton5Millis > debounceDelay) {
             lastButton5Millis = millis();
             triggerStatusBlink();
             nightMode = !nightMode;
+            if (!nightMode) {
+                syncBrightness();
+            }
             Serial.printf("Night mode is now %s\n", nightMode ? "on" : "off");
         }
     }
