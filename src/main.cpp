@@ -288,8 +288,11 @@ void loop() {
                 if (speed < 0.01f) speed = 0.01f;
                 Serial.printf("Speed decreased to %f\n", speed);
                 break;
-            case 'n':
+            case 'x':
+                triggerStatusBlink();
                 rainbowActive = true;
+                discoActive = false;
+                nightMode = false;
                 preciseHue = 0.0f;
                 syncBrightness();
                 speed = 1.0f;
