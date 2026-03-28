@@ -125,31 +125,8 @@ void togglePower() {
             FastLED.show();
             delay(5);
         }
-
-        delay(200);
-    }
-
-    if (digitalRead(BUTTON_PIN_2) == LOW) {
-        rainbowActive = false;
-        discoActive = true;
-
-        uint8_t randomHue = random(0, 256);
-
-        brightness = random(5, 256);
-
-        leds[0] = CHSV(randomHue, 255, 255);
-
-        Serial.printf("Random color: %d and brightness: %d\n", randomHue, brightness);
-        delay(200);
     }
 }
-
-    if (digitalRead(BUTTON_PIN_4) == LOW) {
-        rainbowActive = !rainbowActive;
-        discoActive = false;
-        Serial.printf("Rainbow effect is now %s\n", rainbowActive ? "on" : "off");
-        delay(200);
-    }
 
 void loop() {
     if (debugMode) {
@@ -173,9 +150,9 @@ void loop() {
         );
     }
 
-    if (newBrightness != brightness && !discoActive) {
-        brightness = newBrightness;
-        FastLED.setBrightness(brightness);
+    if (digitalRead(BUTTON_PIN_3) == LOW) {
+        if (millis() - lastButton3Millis > debounceDelay) {
+            lastButton3Millis = millis();
             triggerStatusBlink();
             togglePower();
         }
@@ -388,6 +365,10 @@ void loop() {
             Serial.printf("Random color: %d and brightness: %d with speed: %lu ms\n", randomHue, brightness, dynamicDebounce);
         }
     }
+
+    if (digitalRead(BUTTON_PIN_4) == LOW) {
+        if (millis() - lastButton4Millis > debounceDelay) {
+            lastButton4Millis = millis();
             triggerStatusBlink();
             rainbowActive = !rainbowActive;
             if (discoActive) {
