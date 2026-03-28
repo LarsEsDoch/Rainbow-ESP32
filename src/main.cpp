@@ -16,7 +16,9 @@
 
 CRGB leds[NUM_LEDS];
 uint8_t brightness = 127;
+int brightness = 127;
 float speed = 1.0f;
+
 bool rainbowActive = true;
 bool discoActive = false;
 bool ledOn = true;
@@ -61,7 +63,7 @@ void printMenu() {
 }
 
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(921600);
     delay(2000);
 
     pinMode(STATUS_LED, OUTPUT);
@@ -144,6 +146,7 @@ void loop() {
         Serial.printf("Random color: %d and brightness: %d\n", randomHue, brightness);
         delay(200);
     }
+}
 
     if (digitalRead(BUTTON_PIN_4) == LOW) {
         rainbowActive = !rainbowActive;
@@ -181,7 +184,7 @@ void loop() {
         Serial.println(incomingByte);
 
         switch (incomingByte) {
-            case 'p':
+            case 'm':
                 triggerStatusBlink();
                 rainbowActive = !rainbowActive;
                 Serial.printf("Rainbow effect is now %s\n", rainbowActive ? "on" : "off");
@@ -203,13 +206,12 @@ void loop() {
             case 'r':
                 triggerStatusBlink();
                 rainbowActive = false;
-                leds[0] = CRGB::Red;
                 FastLED.show();
                 Serial.println("Manual mode: LED is RED");
                 break;
             case 'b':
+                triggerStatusBlink();
                 rainbowActive = false;
-                leds[0] = CRGB::Blue;
                 targetColor = CRGB::Blue;
                 FastLED.show();
                 Serial.println("Manual mode: LED is BLUE");
@@ -217,7 +219,6 @@ void loop() {
             case 'g':
                 triggerStatusBlink();
                 rainbowActive = false;
-                leds[0] = CRGB::Green;
                 targetColor = CRGB::Green;
                 FastLED.show();
                 Serial.println("Manual mode: LED is GREEN");
@@ -237,6 +238,7 @@ void loop() {
                 rainbowActive = true;
                 preciseHue = 0.0f;
                 brightness = 50;
+                brightness = 127;
                 speed = 1.0f;
                 Serial.println("Settings have been reset");
                 break;
