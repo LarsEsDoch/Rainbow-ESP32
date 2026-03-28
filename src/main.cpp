@@ -269,6 +269,26 @@ void loop() {
                 if (speed < 0.01f) speed = 0.01f;
                 Serial.printf("Speed decreased to %f\n", speed);
                 break;
+            case 'd': {
+                int speedScale = static_cast<int>(speed * 100);
+                long dynamicDebounce = map(speedScale, 1, 1000, 1000, 50);
+                if (millis() - lastButton2Millis > dynamicDebounce) {
+                    lastButton2Millis = millis();
+                    triggerStatusBlink();
+                    rainbowActive = false;
+                    discoActive = true;
+
+                    uint8_t randomHue = random(0, 256);
+
+                    brightness = random(5, 256);
+
+                    leds[0] = CHSV(randomHue, 255, 255);
+                    FastLED.setBrightness(brightness);
+
+                    Serial.printf("Random color: %d and brightness: %d with speed: %lu ms\n", randomHue, brightness, dynamicDebounce);
+                }
+                break;
+            }
             case 'x':
                 triggerStatusBlink();
                 rainbowActive = true;
@@ -329,7 +349,25 @@ void loop() {
         }
     }
 
+    if (digitalRead(BUTTON_PIN_2) == LOW) {
+        int speedScale = static_cast<int>(speed * 100);
+        long dynamicDebounce = map(speedScale, 1, 1000, 1000, 50);
+        if (millis() - lastButton2Millis > dynamicDebounce) {
+            lastButton2Millis = millis();
             triggerStatusBlink();
+            rainbowActive = false;
+            discoActive = true;
+
+            uint8_t randomHue = random(0, 256);
+
+            brightness = random(5, 256);
+
+            leds[0] = CHSV(randomHue, 255, 255);
+            FastLED.setBrightness(brightness);
+
+            Serial.printf("Random color: %d and brightness: %d with speed: %lu ms\n", randomHue, brightness, dynamicDebounce);
+        }
+    }
             triggerStatusBlink();
             rainbowActive = !rainbowActive;
             if (discoActive) {
