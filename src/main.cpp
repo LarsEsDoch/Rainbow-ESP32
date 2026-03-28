@@ -15,6 +15,8 @@
 #define POT_PIN_1 4
 #define POT_PIN_2 5
 
+#define LDR_PIN 7
+
 CRGB leds[NUM_LEDS];
 int brightness = 127;
 float speed = 1.0f;
@@ -278,6 +280,23 @@ void loop() {
             Serial.printf("Night mode is now %s\n", nightMode ? "on" : "off");
         }
     }
+    if (nightMode) {
+        static float smoothedLDR = -1;
+        int lightRaw = analogRead(LDR_PIN);
+        if (smoothedLDR < 0) smoothedLDR = lightRaw;
+
+        smoothedLDR = (smoothedLDR * 0.95f) + (lightRaw * 0.05f);
+
+        int constrainedLDR = constrain(smoothedLDR, 0, 600);
+
+        uint8_t dynamicBrightness = map(constrainedLDR, 0, 600, 5, 255);
+
+        if (abs(dynamicBrightness - brightness) > 3) {
+            brightness = dynamicBrightness;
+            FastLED.setBrightness(brightness);
+        }
+    }
+
     if (rainbowActive) {
         preciseHue += speed;
         if (preciseHue >= 255.0f) preciseHue -= 255.0f;
