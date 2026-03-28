@@ -21,9 +21,18 @@ bool rainbowActive = true;
 bool discoActive = false;
 bool ledOn = true;
 float preciseHue = 0.0f;
+CRGB targetColor = CRGB::Black;
 
 unsigned long lastBlinkMillis = 0;
 bool statusLedState = false;
+
+unsigned long lastActionMillis = 0;
+bool actionDetected = false;
+
+void triggerStatusBlink() {
+    lastActionMillis = millis();
+    actionDetected = true;
+}
 
 void printMenu() {
     Serial.println("\n--- ESP32-S3 DEBUG CONSOLE ---");
@@ -151,6 +160,7 @@ void loop() {
     if (newBrightness != brightness && !discoActive) {
         brightness = newBrightness;
         FastLED.setBrightness(brightness);
+            triggerStatusBlink();
     }
 
     if (Serial.available() > 0) {
@@ -161,20 +171,26 @@ void loop() {
 
         switch (incomingByte) {
             case 'p':
+                triggerStatusBlink();
                 rainbowActive = !rainbowActive;
                 Serial.printf("Rainbow effect is now %s\n", rainbowActive ? "on" : "off");
                 break;
+                triggerStatusBlink();
+                triggerStatusBlink();
             case '+':
                 if (brightness < 245) brightness += 10;
+                triggerStatusBlink();
                 FastLED.setBrightness(brightness);
                 Serial.printf("Brightness increased to %d\n", brightness);
                 break;
             case '-':
                 if (brightness > 10) brightness -= 10;
+                triggerStatusBlink();
                 FastLED.setBrightness(brightness);
                 Serial.printf("Brightness decreased to %d\n", brightness);
                 break;
             case 'r':
+                triggerStatusBlink();
                 rainbowActive = false;
                 leds[0] = CRGB::Red;
                 FastLED.show();
@@ -188,18 +204,22 @@ void loop() {
                 Serial.println("Manual mode: LED is BLUE");
                 break;
             case 'g':
+                triggerStatusBlink();
                 rainbowActive = false;
                 leds[0] = CRGB::Green;
                 targetColor = CRGB::Green;
                 FastLED.show();
                 Serial.println("Manual mode: LED is GREEN");
                 break;
+                triggerStatusBlink();
             case 'f':
                 speed += 0.01f;
+                triggerStatusBlink();
                 Serial.printf("Speed increased to %f\n", speed);
                 break;
             case 's':
                 speed -= 0.01f;
+                triggerStatusBlink();
                 Serial.printf("Speed decreased to %f\n", speed);
                 break;
             case 'n':
@@ -219,10 +239,13 @@ void loop() {
         }
     }
 
+            triggerStatusBlink();
                 targetColor = CRGB::Red;
                 targetColor = CRGB::Green;
                 targetColor = CRGB::Blue;
                 targetColor = CRGB::White;
+            triggerStatusBlink();
+            triggerStatusBlink();
             targetColor = CRGB::Black;
     if (rainbowActive) {
         preciseHue += speed;
@@ -234,17 +257,26 @@ void loop() {
     }
 
     unsigned long currentMillis = millis();
-    if (statusLedState) {
-        if (currentMillis - lastBlinkMillis >= 200) {
-            lastBlinkMillis = currentMillis;
-            statusLedState = false;
-            analogWrite(STATUS_LED, statusLedState);
+
+    if (actionDetected) {
+        analogWrite(STATUS_LED, 30);
+        if (currentMillis - lastActionMillis >= 30) {
+            actionDetected = false;
+            analogWrite(STATUS_LED, 0);
         }
     } else {
-        if (currentMillis - lastBlinkMillis >= 5000) {
-            lastBlinkMillis = currentMillis;
-            statusLedState = true;
-            analogWrite(STATUS_LED, constrain(brightness, 10, 255));
+        if (statusLedState) {
+            if (currentMillis - lastBlinkMillis >= 200) {
+                lastBlinkMillis = currentMillis;
+                statusLedState = false;
+                analogWrite(STATUS_LED, 0);
+            }
+        } else {
+            if (currentMillis - lastBlinkMillis >= 10000) {
+                lastBlinkMillis = currentMillis;
+                statusLedState = true;
+                analogWrite(STATUS_LED, constrain(brightness, 10, 255));
+            }
         }
     }
 
