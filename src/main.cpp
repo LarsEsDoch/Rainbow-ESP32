@@ -36,16 +36,27 @@ void triggerStatusBlink() {
 
 void printMenu() {
     Serial.println("\n--- ESP32-S3 DEBUG CONSOLE ---");
-    Serial.println("Commands:");
-    Serial.println("  'p' -> Rainbow Start/Stop");
+    Serial.println("=== SYSTEM ===");
+    Serial.println("  'o' -> Power on/off");
+    Serial.println("  'x' -> Reset settings");
+    Serial.println("  'i' -> Show Debug Info");
+
+    Serial.println("\n=== MODES ===");
+    Serial.println("  'm' -> Rainbow Mode Start/Stop");
+    Serial.println("  'd' -> Random Disco Color");
+    Serial.println("  'n' -> Night Mode On/Off");
+
+    Serial.println("\n=== MANUAL COLORS ===");
+    Serial.println("  'r' -> RED");
+    Serial.println("  'g' -> GREEN");
+    Serial.println("  'b' -> BLUE");
+    Serial.println("  'w' -> WHITE");
+
+    Serial.println("\n=== ADJUSTMENTS ===");
     Serial.println("  '+' -> Increase brightness");
     Serial.println("  '-' -> Decrease brightness");
-    Serial.println("  'f' -> Increase speed");
-    Serial.println("  's' -> Decrease speed");
-    Serial.println("  'r' -> Manual LED: RED");
-    Serial.println("  'g' -> Manual LED: GREEN");
-    Serial.println("  'b' -> Manual LED: BLUE");
-    Serial.println("  'n' -> Reset settings");
+    Serial.println("  'f' -> Increase speed (faster)");
+    Serial.println("  's' -> Decrease speed (slower)");
     Serial.println("------------------------------");
 }
 
