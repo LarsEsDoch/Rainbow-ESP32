@@ -6,22 +6,24 @@
 
 #define STATUS_LED 6
 
-#define BUTTON_PIN_1 11
-#define BUTTON_PIN_2 12
-#define BUTTON_PIN_3 13
-#define BUTTON_PIN_4 14
+#define BUTTON_PIN_1 10
+#define BUTTON_PIN_2 11
+#define BUTTON_PIN_3 12
+#define BUTTON_PIN_4 13
+#define BUTTON_PIN_5 14
 
 #define POT_PIN_1 4
 #define POT_PIN_2 5
 
 CRGB leds[NUM_LEDS];
-uint8_t brightness = 127;
 int brightness = 127;
 float speed = 1.0f;
 
 bool rainbowActive = true;
 bool discoActive = false;
 bool ledOn = true;
+bool nightMode = false;
+
 float preciseHue = 0.0f;
 CRGB targetColor = CRGB::Black;
 
@@ -35,6 +37,13 @@ void triggerStatusBlink() {
     lastActionMillis = millis();
     actionDetected = true;
 }
+
+unsigned long lastButton1Millis = 0;
+unsigned long lastButton2Millis = 0;
+unsigned long lastButton3Millis = 0;
+unsigned long lastButton4Millis = 0;
+unsigned long lastButton5Millis = 0;
+const unsigned long debounceDelay = 200;
 
 void printMenu() {
     Serial.println("\n--- ESP32-S3 DEBUG CONSOLE ---");
@@ -72,6 +81,7 @@ void setup() {
     pinMode(BUTTON_PIN_2, INPUT_PULLUP);
     pinMode(BUTTON_PIN_3, INPUT_PULLUP);
     pinMode(BUTTON_PIN_4, INPUT_PULLUP);
+    pinMode(BUTTON_PIN_5, INPUT_PULLUP);
 
     FastLED.addLeds<WS2812B, RGB_PIN, GRB>(leds, NUM_LEDS);
     FastLED.setBrightness(brightness);
@@ -260,6 +270,14 @@ void loop() {
             triggerStatusBlink();
             triggerStatusBlink();
             targetColor = CRGB::Black;
+    if (digitalRead(BUTTON_PIN_5) == LOW) {
+        if (millis() - lastButton5Millis > debounceDelay) {
+            lastButton5Millis = millis();
+            triggerStatusBlink();
+            nightMode = !nightMode;
+            Serial.printf("Night mode is now %s\n", nightMode ? "on" : "off");
+        }
+    }
     if (rainbowActive) {
         preciseHue += speed;
         if (preciseHue >= 255.0f) preciseHue -= 255.0f;
